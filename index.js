@@ -16,6 +16,8 @@ app.use(express.json());
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+const fileRoutes = require('./routes/file');
+app.use('/api/files', fileRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -25,6 +27,8 @@ mongoose.connect(process.env.MONGO_URI)
 app.get('/', (req, res) => {
   res.send('Hello 123 bang');
 });
+
+
 
 // Start the server
 app.listen(PORT, () => { 
