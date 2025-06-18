@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config();
 
+
 const router = express.Router();
 
 // ✅ GridFS Storage engine for uploads
@@ -41,7 +42,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
 
 
 // ✅ Download/View Route
-router.get('/file/:filename', async (req, res) => {
+router.get('/:filename', async (req, res) => {
   try {
     const db = mongoose.connection.db;
 const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: 'uploads' });
@@ -61,6 +62,32 @@ stream.pipe(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/', async (req, res) => {
+  try {
+    const db = mongoose.connection.db;
+    const files = await db.collection('uploads.files').find().toArray();
+
+    if (!files || files.length === 0) {
+      return res.status(404).json({ message: 'No files found' });
+    }
+
+    // Optional: Clean up metadata before sending
+    const fileList = files.map(file => ({
+      filename: file.filename,
+      originalName: file.metadata?.originalName || file.filename,
+      contentType: file.contentType,
+      uploadDate: file.uploadDate,
+      size: file.length,
+      url: `${process.env.BASE_URI}/api/files/${file.filename}`, // URL to preview/download
+    }));
+
+    res.status(200).json(fileList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching files' });
   }
 });
 
